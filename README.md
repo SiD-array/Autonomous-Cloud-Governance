@@ -35,6 +35,15 @@ Budget-Aware AI Squad is a decentralized framework that integrates **financial s
 │   • Budget Validation    │    │   • BLOCKED until approved   │
 │   • Spend Forecasting    │    │                              │
 └──────────────────────────┘    └──────────────────────────────┘
+                   │                      │
+                   │                      ▼
+                   │            ┌──────────────────────────────┐
+                   │            │        WRITER AGENT          │
+                   │            │    (Document Polisher)       │
+                   │            │                              │
+                   │            │   • Executive summaries      │
+                   │            │   • Professional formatting  │
+                   │            └──────────────────────────────┘
                    │
                    ▼
           ┌───────────────┐
@@ -47,7 +56,8 @@ Budget-Aware AI Squad is a decentralized framework that integrates **financial s
 
 - **Supervisor Agent**: Orchestrates the workflow and handles handovers between agents
 - **Accountant Agent**: The "Financial Gatekeeper" — implements Agentic Circuit Breakers. No task can execute unless the Accountant validates the forecasted spend against remaining budget
-- **Researcher Agent**: The "Cloud Worker" — uses Boto3 to interact with cloud infrastructure but must wait for Accountant approval
+- **Researcher Agent**: The "Cloud Worker" — analyzes topics and generates technical summaries using Boto3 and LLM Brain
+- **Writer Agent**: The "Polisher" — transforms raw research into executive-ready documents
 
 ---
 
@@ -67,6 +77,8 @@ Budget-Aware AI Squad is a decentralized framework that integrates **financial s
 Autonomous-Cloud-Governance/
 ├── brain.py          # Central LLM interface ("Voice Box" for agents)
 ├── bridge.py         # Phase 1: Digital Office milestone
+├── researcher.py     # Researcher Agent - Cloud analysis & summaries
+├── writer.py         # Writer Agent - Executive document generation
 ├── requirements.txt  # Python dependencies
 ├── .gitignore        # Git ignore rules
 └── README.md         # This file
@@ -86,6 +98,20 @@ Demonstrates the foundational AI-to-cloud connection:
 - Generates content via local LLM (Ollama)
 - Stores artifacts in simulated S3 (LocalStack)
 - **Zero cloud cost** proof of concept
+
+#### `researcher.py` - Researcher Agent
+Cloud analysis specialist:
+- Reads research topics from S3 (`research_topic.txt`)
+- Generates 3-point technical summaries via LLM Brain
+- Saves research notes to S3 (`research_notes.txt`)
+- Full cost tracking per session
+
+#### `writer.py` - Writer Agent
+Document transformation specialist:
+- Reads raw research notes from S3
+- Transforms into polished executive summaries
+- Saves reports to S3 (`reports/executive_summary.txt`)
+- Professional formatting with C-level readability
 
 ---
 
@@ -130,14 +156,20 @@ ollama pull llama3.1
 localstack start
 ```
 
-### Run Phase 1 Milestone
+### Run the Agent Pipeline
 
 ```bash
-# Test the LLM Brain connection
+# Step 1: Test the LLM Brain connection
 python brain.py
 
-# Run the Digital Office milestone
+# Step 2: Run the Digital Office milestone
 python bridge.py
+
+# Step 3: Run the Researcher Agent (creates research_notes.txt)
+python researcher.py
+
+# Step 4: Run the Writer Agent (creates executive_summary.txt)
+python writer.py
 ```
 
 ---
@@ -153,15 +185,25 @@ The system simulates costs to enable budget governance:
 | Actual cloud cost | $0.00 (LocalStack simulation) |
 | Actual LLM cost | $0.00 (Ollama local execution) |
 
+### Example Pipeline Costs
+```
+Researcher Agent: ~$0.008 (550 tokens)
+Writer Agent:     ~$0.021 (1,400 tokens)
+─────────────────────────────────────────
+Total Pipeline:   ~$0.029 (1,950 tokens)
+```
+
 ---
 
 ## 🗺️ Roadmap
 
 - [x] **Phase 1**: Digital Office — LLM + Cloud connection ($0.00)
-- [ ] **Phase 2**: Accountant Agent — Budget circuit breakers
-- [ ] **Phase 3**: Supervisor Agent — Multi-agent orchestration
-- [ ] **Phase 4**: Real-time Telemetry Dashboard
-- [ ] **Phase 5**: Production deployment with real AWS
+- [x] **Phase 2**: Researcher Agent — Cloud analysis with cost tracking
+- [x] **Phase 3**: Writer Agent — Document transformation pipeline
+- [ ] **Phase 4**: Accountant Agent — Budget circuit breakers
+- [ ] **Phase 5**: Supervisor Agent — Multi-agent orchestration
+- [ ] **Phase 6**: Real-time Telemetry Dashboard
+- [ ] **Phase 7**: Production deployment with real AWS
 
 ---
 
