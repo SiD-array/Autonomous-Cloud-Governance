@@ -25,7 +25,14 @@ Workflow Position:
 =============================================================================
 """
 
+import os
+import sys
+
+# Add project root to path to resolve local module imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import boto3
+from typing import Optional
 from botocore.config import Config
 from brain import LLMBrain, LLMResponse
 
@@ -80,15 +87,16 @@ class WriterAgent:
         "structure the content for C-level readability."
     )
     
-    def __init__(self, endpoint_url: str = LOCALSTACK_ENDPOINT):
+    def __init__(self, endpoint_url: str = LOCALSTACK_ENDPOINT, brain: Optional[LLMBrain] = None):
         """
         Initialize the Writer Agent.
         
         Args:
             endpoint_url: The LocalStack endpoint (default: http://localhost:4566)
+            brain: The LLMBrain or BudgetGuard interceptor instance.
         """
         # Initialize the LLM Brain for content transformation
-        self.brain = LLMBrain()
+        self.brain = brain if brain is not None else LLMBrain()
         
         # Configure S3 client for LocalStack
         self.s3_client = boto3.client(

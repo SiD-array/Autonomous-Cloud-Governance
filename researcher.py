@@ -23,7 +23,14 @@ Responsibilities:
 =============================================================================
 """
 
+import os
+import sys
+
+# Add project root to path to resolve local module imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import boto3
+from typing import Optional
 from botocore.config import Config
 from brain import LLMBrain, LLMResponse
 
@@ -73,15 +80,16 @@ class ResearcherAgent:
         "focus on actionable insights for cloud governance."
     )
     
-    def __init__(self, endpoint_url: str = LOCALSTACK_ENDPOINT):
+    def __init__(self, endpoint_url: str = LOCALSTACK_ENDPOINT, brain: Optional[LLMBrain] = None):
         """
         Initialize the Researcher Agent.
         
         Args:
             endpoint_url: The LocalStack endpoint (default: http://localhost:4566)
+            brain: The LLMBrain or BudgetGuard interceptor instance.
         """
         # Initialize the LLM Brain for intelligent analysis
-        self.brain = LLMBrain()
+        self.brain = brain if brain is not None else LLMBrain()
         
         # Configure S3 client for LocalStack
         self.s3_client = boto3.client(
@@ -196,7 +204,7 @@ Be concise and focus on cloud governance implications."""
         """
         # Step 1: Read the research topic from S3
         print(f"[RESEARCHER] Reading topic from s3://{bucket}/{input_key}...")
-        topic = self.read_from_s3(bucket, input_key)
+        topic = str(self.read_from_s3(bucket, input_key))
         print(f"[RESEARCHER] Topic loaded: {topic[:100]}...")
         
         # Step 2: Analyze with LLM Brain
