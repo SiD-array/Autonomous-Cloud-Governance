@@ -75,8 +75,11 @@ Budget-Aware AI Squad is a decentralized framework that integrates **financial s
 
 ```
 Autonomous-Cloud-Governance/
+├── accountant_agent.py # Financial Gatekeeper & Budget Ledger
 ├── brain.py          # Central LLM interface ("Voice Box" for agents)
 ├── bridge.py         # Phase 1: Digital Office milestone
+├── budget_guard.py   # Cost-prediction interceptor proxy
+├── main.py           # Orchestrator & Multi-agent workflow
 ├── researcher.py     # Researcher Agent - Cloud analysis & summaries
 ├── writer.py         # Writer Agent - Executive document generation
 ├── requirements.txt  # Python dependencies
@@ -93,6 +96,23 @@ Central LLM interface for all agents. Features:
 - **Cost simulation**: Tracks token usage at $0.015/1k tokens
 - Fiscal ledger for budget-aware operations
 
+#### `budget_guard.py` - The Proxy Interceptor
+Dependency Injection wrapper that sits in front of the `LLMBrain`:
+- Intercepts requests before they reach the LLM
+- Computes mock Cost-to-Complete (CtC) based on heuristic token approximation
+- Requests execution clearance from the Accountant
+
+#### `accountant_agent.py` - The Fiscal Authority
+Evaluates all budget clearance requests inside the mesh:
+- Enforces hard daily or lifecycle budgets
+- Triggers the `BudgetExceededException` (Circuit Breaker) if funds are short
+- Maintains an immutable ledger tracking costs per agent
+
+#### `main.py` - The Orchestrator
+Executes the cohesive agent mesh. Shows the pipeline operating under two conditions:
+- **Phase 3.1 & 3.2**: Smooth operation of Researcher -> Writer pipeline under budget limits
+- **Circuit Breaker simulation**: Pipeline failure when daily limits ($0.0001) are starved
+ 
 #### `bridge.py` - Phase 1 Milestone
 Demonstrates the foundational AI-to-cloud connection:
 - Generates content via local LLM (Ollama)
@@ -165,11 +185,8 @@ python brain.py
 # Step 2: Run the Digital Office milestone
 python bridge.py
 
-# Step 3: Run the Researcher Agent (creates research_notes.txt)
-python researcher.py
-
-# Step 4: Run the Writer Agent (creates executive_summary.txt)
-python writer.py
+# Step 3: Run the Multi-Agent Orchestrator Pipeline (Researcher + Writer + FinOps Guards)
+python main.py
 ```
 
 ---
@@ -200,8 +217,8 @@ Total Pipeline:   ~$0.029 (1,950 tokens)
 - [x] **Phase 1**: Digital Office — LLM + Cloud connection ($0.00)
 - [x] **Phase 2**: Researcher Agent — Cloud analysis with cost tracking
 - [x] **Phase 3**: Writer Agent — Document transformation pipeline
-- [ ] **Phase 4**: Accountant Agent — Budget circuit breakers
-- [ ] **Phase 5**: Supervisor Agent — Multi-agent orchestration
+- [x] **Phase 4**: Accountant Agent — Budget circuit breakers
+- [x] **Phase 5**: Supervisor Agent — Multi-agent orchestration
 - [ ] **Phase 6**: Real-time Telemetry Dashboard
 - [ ] **Phase 7**: Production deployment with real AWS
 
