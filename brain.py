@@ -144,7 +144,8 @@ class LLMBrain:
     def generate_response(
         self, 
         prompt: str, 
-        system_message: Optional[str] = None
+        system_message: Optional[str] = None,
+        model_override: Optional[str] = None
     ) -> LLMResponse:
         """
         Generate a response from the local Ollama LLM.
@@ -191,13 +192,17 @@ class LLMBrain:
             "content": prompt
         })
         
+        target_model = model_override or self.model
+        
         # Calculate input cost (prompt + system message)
         input_text = (system_message or "") + prompt
-        input_tokens, input_cost = self.calculate_simulated_cost(input_text)
+        input_tokens, base_input_cost = self.calculate_simulated_cost(input_text)
+        
+        input_cost = 0.0 if model_override else base_input_cost
         
         # Call Ollama (local execution - no cloud cost!)
         response = self._client.chat(
-            model=self.model,
+            model=target_model,
             messages=messages
         )
         
@@ -205,7 +210,9 @@ class LLMBrain:
         response_text = response["message"]["content"]
         
         # Calculate output cost
-        output_tokens, output_cost = self.calculate_simulated_cost(response_text)
+        output_tokens, base_output_cost = self.calculate_simulated_cost(response_text)
+        
+        output_cost = 0.0 if model_override else base_output_cost
         
         # Total cost for this interaction
         total_tokens = input_tokens + output_tokens
@@ -219,7 +226,7 @@ class LLMBrain:
             text=response_text,
             estimated_tokens=total_tokens,
             simulated_cost=total_cost,
-            model=self.model
+            model=target_model
         )
     
     def get_fiscal_summary(self) -> dict:

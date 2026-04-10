@@ -36,6 +36,7 @@ class FinancialLedger:
     global_budget: float
     daily_limit: float
     current_spend: float
+    total_savings: float
     agent_spends: Dict[str, float]
 
 
@@ -59,9 +60,13 @@ class AccountantAgent:
         self.global_budget = global_budget
         self.daily_limit = daily_limit
         self.current_spend = 0.0
+        self.total_savings = 0.0
         
         # Track spend per agent for deeper tracing (variance accuracy goal)
         self.agent_spends: Dict[str, float] = {}
+        
+        # Historical predictive bias factor tracking
+        self.agent_bias_factors: Dict[str, float] = {}
         
         # Thread lock to prevent race conditions during concurrent mesh requests
         self._lock = threading.Lock()
@@ -101,6 +106,53 @@ class AccountantAgent:
             print(f"[ACCOUNTANT] Approved ${estimated_cost:.6f} for {agent_name}. Remaining: ${(self.daily_limit - self.current_spend):.6f}")
             return True
 
+    def get_bias_factor(self, agent_name: str) -> float:
+        """Get the historical cost prediction bias factor for an agent. Defaults to 1.0."""
+        with self._lock:
+            return self.agent_bias_factors.get(agent_name, 1.0)
+
+    def update_bias_factor(self, agent_name: str, predicted_cost: float, actual_cost: float):
+        """
+        Feedback loop: Adjust the prediction multiplier based on real usage.
+        If we under-predicted, the factor increases. If over-predicted, it decreases.
+        """
+        with self._lock:
+            current_bias = self.agent_bias_factors.get(agent_name, 1.0)
+            
+            # Protect against division by zero 
+            safe_prediction = max(predicted_cost, 0.000001)
+            ratio = actual_cost / safe_prediction
+            
+            # Simple learning rate of 0.1 towards the actual ratio
+            new_bias = current_bias + 0.1 * (ratio - current_bias)
+            
+            # Prevent negative or absolute zero biases
+            self.agent_bias_factors[agent_name] = max(0.1, new_bias)
+            
+            error_percent = ((actual_cost - safe_prediction) / safe_prediction) * 100
+            print(f"\033[35m[PREDICTION UPDATE] Agent {agent_name} bias adjusted to {new_bias:.2f}x based on error of {error_percent:.1f}%\033[0m")
+
+    @property
+    def budget_health_ratio(self) -> float:
+        """Returns the ratio of current spend vs daily limit (e.g., 0.85 = 85% spent)."""
+        with self._lock:
+            safe_limit = max(self.daily_limit, 0.000001)
+            return self.current_spend / safe_limit
+
+    def get_recommended_tier(self) -> str:
+        """
+        Dynamic Model Routing rule: 
+        If spend exceeds 80% of daily limit, advise 'FRUGAL' local model to preserve funds.
+        """
+        if self.budget_health_ratio > 0.8:
+            return "FRUGAL"
+        return "PREMIUM"
+
+    def log_savings(self, agent_name: str, original_estimated_cost: float):
+        """Track dollars saved when the routing actively avoids cloud costs."""
+        with self._lock:
+            self.total_savings += original_estimated_cost
+
     def get_ledger(self) -> FinancialLedger:
         """Return the current financial state."""
         with self._lock:
@@ -108,5 +160,6 @@ class AccountantAgent:
                 global_budget=self.global_budget,
                 daily_limit=self.daily_limit,
                 current_spend=self.current_spend,
+                total_savings=self.total_savings,
                 agent_spends=dict(self.agent_spends)
             )
