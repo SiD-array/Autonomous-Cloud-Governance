@@ -22,6 +22,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import math
+import time
 from typing import Optional
 from brain import LLMBrain, LLMResponse, CHARS_PER_TOKEN, COST_PER_1K_TOKENS
 from accountant_agent import AccountantAgent, BudgetExceededException
@@ -39,7 +40,7 @@ class BudgetGuardInterceptor:
     SIMPLE_TASK_KEYWORDS = ["summarize", "format", "extract", "load", "clean"]
     COMPLEX_TASK_KEYWORDS = ["analyze", "synthesize", "reason", "evaluate", "creative"]
     
-    def __init__(self, target_brain: LLMBrain, accountant: AccountantAgent, agent_name: str):
+    def __init__(self, target_brain: LLMBrain, accountant: AccountantAgent, agent_name: str, use_live_aws: bool = False):
         """
         Initialize the Budget Guard.
         
@@ -51,6 +52,7 @@ class BudgetGuardInterceptor:
         self._brain = target_brain
         self._accountant = accountant
         self.agent_name = agent_name
+        self.use_live_aws = use_live_aws
 
     def _mock_predict_ctc(self, prompt: str, system_message: Optional[str] = None) -> float:
         """
@@ -121,14 +123,21 @@ class BudgetGuardInterceptor:
             print(f"[{self.agent_name.upper()} GUARD] Predicted CtC: ${estimated_cost:.6f}")
         
         # 2. Request funds from Accountant (will raise exception if denied)
+        gov_start = time.perf_counter()
         self._accountant.request_funds(self.agent_name, estimated_cost)
+        governance_latency = time.perf_counter() - gov_start
         
         if is_proactive:
             self._accountant.log_savings(self.agent_name, original_estimated_cost)
         
         # 3. If approved, delegate to the actual brain
         print(f"[{self.agent_name.upper()} GUARD] Funds approved. Executing task...")
+        exec_start = time.perf_counter()
         response = self._brain.generate_response(prompt, system_message, model_override=model_override)
+        execution_time = time.perf_counter() - exec_start
+        
+        ratio = (governance_latency / execution_time) * 100 if execution_time > 0 else 0.0
+        print(f"\033[36m[GOVERNANCE METRIC] Governance handshake took {governance_latency*1000:.2f}ms ({ratio:.2f}% overhead). Live AWS: {self.use_live_aws}\033[0m")
         
         # 4. Feedback Loop: Track the actual cost vs predicted cost to improve future estimates
         actual_cost = response.simulated_cost

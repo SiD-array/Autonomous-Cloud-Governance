@@ -31,16 +31,21 @@ from writer import WriterAgent
 import boto3
 from botocore.config import Config
 
+USE_LIVE_AWS = True
+
 def setup_test_environment():
     """Seed the LocalStack bucket with a test research topic."""
-    s3_client = boto3.client(
-        's3',
-        endpoint_url=LOCALSTACK_ENDPOINT,
-        aws_access_key_id='test',
-        aws_secret_access_key='test',
-        region_name='us-east-1',
-        config=Config(signature_version='s3v4')
-    )
+    if USE_LIVE_AWS:
+        s3_client = boto3.client('s3')
+    else:
+        s3_client = boto3.client(
+            's3',
+            endpoint_url=LOCALSTACK_ENDPOINT,
+            aws_access_key_id='test',
+            aws_secret_access_key='test',
+            region_name='us-east-1',
+            config=Config(signature_version='s3v4')
+        )
     
     # Ensure bucket exists
     try:
@@ -73,12 +78,12 @@ def run_mesh(daily_limit: float):
     base_brain = LLMBrain()
     
     # 3. Create intercepted brains for the agents
-    research_guard = BudgetGuardInterceptor(base_brain, accountant, "Researcher")
-    writer_guard = BudgetGuardInterceptor(base_brain, accountant, "Writer")
+    research_guard = BudgetGuardInterceptor(base_brain, accountant, "Researcher", use_live_aws=USE_LIVE_AWS)
+    writer_guard = BudgetGuardInterceptor(base_brain, accountant, "Writer", use_live_aws=USE_LIVE_AWS)
     
     # 4. Instantiate the workers with DI
-    researcher = ResearcherAgent(brain=research_guard)
-    writer = WriterAgent(brain=writer_guard)
+    researcher = ResearcherAgent(brain=research_guard, use_live_aws=USE_LIVE_AWS)
+    writer = WriterAgent(brain=writer_guard, use_live_aws=USE_LIVE_AWS)
     
     try:
         print("\n--- PHASE 3.1: RESEARCH ---")

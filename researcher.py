@@ -40,7 +40,7 @@ from brain import LLMBrain, LLMResponse
 # =============================================================================
 
 LOCALSTACK_ENDPOINT = "http://localhost:4566"
-BUCKET_NAME = "milestone-bucket"
+BUCKET_NAME = "milestone-bucket-budget-aware"
 INPUT_FILE = "research_topic.txt"
 OUTPUT_FILE = "research_notes.txt"
 
@@ -80,7 +80,7 @@ class ResearcherAgent:
         "focus on actionable insights for cloud governance."
     )
     
-    def __init__(self, endpoint_url: str = LOCALSTACK_ENDPOINT, brain: Optional[LLMBrain] = None):
+    def __init__(self, endpoint_url: str = LOCALSTACK_ENDPOINT, brain: Optional[LLMBrain] = None, use_live_aws: bool = False):
         """
         Initialize the Researcher Agent.
         
@@ -91,15 +91,19 @@ class ResearcherAgent:
         # Initialize the LLM Brain for intelligent analysis
         self.brain = brain if brain is not None else LLMBrain()
         
-        # Configure S3 client for LocalStack
-        self.s3_client = boto3.client(
-            's3',
-            endpoint_url=endpoint_url,
-            aws_access_key_id='test',
-            aws_secret_access_key='test',
-            region_name='us-east-1',
-            config=Config(signature_version='s3v4')
-        )
+        # Configure S3 client
+        if use_live_aws:
+            self.s3_client = boto3.client('s3')
+            print("Using Live AWS")
+        else:
+            self.s3_client = boto3.client(
+                's3',
+                endpoint_url=endpoint_url,
+                aws_access_key_id='test',
+                aws_secret_access_key='test',
+                region_name='us-east-1',
+                config=Config(signature_version='s3v4')
+            )
         
         self.system_prompt = self.SYSTEM_PROMPT
     

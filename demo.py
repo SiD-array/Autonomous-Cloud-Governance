@@ -13,15 +13,20 @@ from writer import WriterAgent
 import boto3
 from botocore.config import Config
 
+from main import USE_LIVE_AWS
+
 def setup_test_environment():
-    s3_client = boto3.client(
-        's3',
-        endpoint_url=LOCALSTACK_ENDPOINT,
-        aws_access_key_id='test',
-        aws_secret_access_key='test',
-        region_name='us-east-1',
-        config=Config(signature_version='s3v4')
-    )
+    if USE_LIVE_AWS:
+        s3_client = boto3.client('s3')
+    else:
+        s3_client = boto3.client(
+            's3',
+            endpoint_url=LOCALSTACK_ENDPOINT,
+            aws_access_key_id='test',
+            aws_secret_access_key='test',
+            region_name='us-east-1',
+            config=Config(signature_version='s3v4')
+        )
     try:
         s3_client.head_bucket(Bucket=BUCKET_NAME)
     except Exception:
@@ -39,11 +44,11 @@ def run_mesh(daily_limit: float):
     accountant = AccountantAgent(global_budget=10.0, daily_limit=daily_limit)
     base_brain = LLMBrain()
     
-    research_guard = BudgetGuardInterceptor(base_brain, accountant, "Researcher")
-    writer_guard = BudgetGuardInterceptor(base_brain, accountant, "Writer")
+    research_guard = BudgetGuardInterceptor(base_brain, accountant, "Researcher", use_live_aws=USE_LIVE_AWS)
+    writer_guard = BudgetGuardInterceptor( base_brain, accountant, "Writer", use_live_aws=USE_LIVE_AWS)
     
-    researcher = ResearcherAgent(brain=research_guard)
-    writer = WriterAgent(brain=writer_guard)
+    researcher = ResearcherAgent(brain=research_guard, use_live_aws=USE_LIVE_AWS)
+    writer = WriterAgent(brain=writer_guard, use_live_aws=USE_LIVE_AWS)
     
     try:
         print("\n--- PHASE 3.1: RESEARCH ---")
