@@ -33,3 +33,7 @@ Thumbs.db
 
 # LocalStack Data
 .localstack/
+
+# Frontend (Vite / React)
+web/node_modules/
+web/dist/
