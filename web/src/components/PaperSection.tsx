@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion'
 import { ExternalLink } from 'lucide-react'
 
+const IEEE_PAPER_URL =
+  'https://github.com/SiD-array/Autonomous-Cloud-Governance/blob/main/Final%20Report.pdf'
+
 export function PaperSection() {
   return (
     <section
@@ -17,18 +20,18 @@ export function PaperSection() {
           IEEE paper &amp; artifacts
         </motion.h2>
         <p className="mt-3 text-sm text-slate-400 md:text-base">
-          When your DOI is available, link it here. Until then, the repository README documents
-          architecture, cost simulation, and live AWS validation for the Budget-Aware AI Squad.
+          The IEEE submission is now attached as the project Final Report. Open the paper directly
+          or review the repository artifacts and execution ledger below.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <a
-            href="https://github.com/SiD-array/Autonomous-Cloud-Governance"
+            href={IEEE_PAPER_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/5 px-6 py-3 text-sm font-semibold text-cyan-200 transition hover:bg-cyan-500/10"
           >
             <ExternalLink className="size-4" aria-hidden />
-            Open GitHub repository
+            Open IEEE Paper (Final Report)
           </a>
           <a
             href="#evidence"

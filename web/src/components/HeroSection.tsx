@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion'
 import { Activity, Shield } from 'lucide-react'
 
+const IEEE_PAPER_URL =
+  'https://github.com/SiD-array/Autonomous-Cloud-Governance/blob/main/Final%20Report.pdf'
+
 export function HeroSection() {
   return (
     <header className="relative overflow-hidden border-b border-cyber-border bg-gradient-to-b from-cyber-surface to-cyber-void px-6 py-20 md:py-28">
@@ -67,7 +70,9 @@ export function HeroSection() {
             Watch Simulation
           </a>
           <a
-            href="#paper"
+            href={IEEE_PAPER_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center justify-center rounded-lg border border-cyber-border bg-cyber-elevated px-8 py-3.5 text-sm font-semibold text-slate-200 transition hover:border-cyan-500/40 hover:text-cyan-200"
           >
             Read IEEE Paper
