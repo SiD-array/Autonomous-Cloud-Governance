@@ -44,7 +44,7 @@ CHARS_PER_TOKEN = 4  # Approximate: 1 token ≈ 4 characters
 
 # Ollama configuration
 OLLAMA_HOST = "http://localhost:11434"
-DEFAULT_MODEL = "llama3.1"
+DEFAULT_MODEL = "llama3.2"
 
 
 @dataclass
@@ -83,7 +83,7 @@ class LLMBrain:
         >>> print(f"Cost: ${response.simulated_cost:.6f}")
     
     Attributes:
-        model (str): The Ollama model to use (default: llama3.1)
+        model (str): The Ollama model to use (default: llama3.2)
         host (str): The Ollama server endpoint
         total_tokens_used (int): Running total of tokens consumed
         total_cost_incurred (float): Running total of simulated costs
@@ -94,7 +94,7 @@ class LLMBrain:
         Initialize the LLM Brain.
         
         Args:
-            model: The Ollama model identifier (default: llama3.1)
+            model: The Ollama model identifier (default: llama3.2)
             host: The Ollama server URL (default: http://localhost:11434)
         """
         self.model = model
@@ -201,13 +201,24 @@ class LLMBrain:
         input_cost = 0.0 if model_override else base_input_cost
         
         # Call Ollama (local execution - no cloud cost!)
-        response = self._client.chat(
-            model=target_model,
-            messages=messages
-        )
+        try:
+            response = self._client.chat(
+                model=target_model,
+                messages=messages
+            )
+        except ollama.ResponseError as e:
+            if e.status_code == 404:
+                print(f"[LLM BRAIN] Model '{target_model}' not found. Pulling it now... This may take a while.")
+                self._client.pull(target_model)
+                response = self._client.chat(
+                    model=target_model,
+                    messages=messages
+                )
+            else:
+                raise e
         
         # Extract response text
-        response_text = response["message"]["content"]
+        response_text = response.message.content
         
         # Calculate output cost
         output_tokens, base_output_cost = self.calculate_simulated_cost(response_text)

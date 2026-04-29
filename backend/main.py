@@ -99,6 +99,10 @@ def run_mesh(daily_limit: float):
         print(f"\n[!!!] FINOPS INTERVENTION [!!!]\n{str(e)}")
         print(">>> PIPELINE HALTED: Circuit Breaker triggered.")
         
+    except KeyboardInterrupt:
+        print("\n[WARNING] Pipeline interrupted by user (e.g. cancelled model pull).")
+        sys.exit(130)
+        
     except Exception as e:
         print(f"\n[ERROR] Pipeline failed for non-budget reasons: {e}")
         
