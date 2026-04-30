@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion'
-import { ExternalLink } from 'lucide-react'
+import { Download, ExternalLink } from 'lucide-react'
 
-const IEEE_PAPER_URL =
+const IEEE_PAPER_VIEW_URL =
   'https://github.com/SiD-array/Autonomous-Cloud-Governance/blob/main/Final%20Report.pdf'
+const IEEE_PAPER_DOWNLOAD_URL =
+  'https://github.com/SiD-array/Autonomous-Cloud-Governance/raw/main/Final%20Report.pdf'
 
 export function PaperSection() {
   return (
@@ -25,13 +27,22 @@ export function PaperSection() {
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <a
-            href={IEEE_PAPER_URL}
+            href={IEEE_PAPER_VIEW_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/30 bg-cyan-500/5 px-6 py-3 text-sm font-semibold text-cyan-200 transition hover:bg-cyan-500/10"
           >
             <ExternalLink className="size-4" aria-hidden />
-            Open IEEE Paper (Final Report)
+            Open IEEE Paper
+          </a>
+          <a
+            href={IEEE_PAPER_DOWNLOAD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-6 py-3 text-sm font-semibold text-emerald-200 transition hover:bg-emerald-500/10"
+          >
+            <Download className="size-4" aria-hidden />
+            Download PDF
           </a>
           <a
             href="#evidence"

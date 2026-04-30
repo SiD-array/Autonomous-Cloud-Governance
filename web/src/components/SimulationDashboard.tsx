@@ -155,6 +155,10 @@ export function SimulationDashboard() {
               Live execution log versus budget telemetry. Toggle modes to feel the mesh fail in
               standard conditions — then recover under budget-aware governance.
             </p>
+            <p className="mt-2 text-xs text-slate-500">
+              Demonstration view: timeline, metrics, and ledger lines are illustrative product
+              simulation.
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-xs font-medium uppercase tracking-wider text-slate-500">
